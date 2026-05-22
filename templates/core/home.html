@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}洛阳旅游网 - 探索神都之美{% endblock %}
+
+{% block content %}
+<!-- 英雄区域 -->
+<div class="hero-section">
+    <div class="container">
+        <h1><i class="fas fa-landmark"></i> 神都洛阳</h1>
+        <p class="lead">十三朝古都 · 华夏文明的摇篮 · 世界文化遗产之城</p>
+        <div class="search-box mt-4">
+            <form action="{% url 'core:search' %}" method="get" class="d-flex">
+                <input type="text" name="q" class="form-control form-control-lg" placeholder="搜索景点、旅游路线..." value="{{ keyword }}">
+                <button type="submit" class="btn btn-light btn-lg ms-2"><i class="fas fa-search"></i> 搜索</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="container my-5">
+    <!-- 特色推荐 -->
+    <h2 class="text-center mb-4"><i class="fas fa-star text-warning"></i> 热门推荐景点</h2>
+    <div class="row">
+        {% for attraction in recommended_attractions %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                {% if attraction.image %}
+                <img src="{{ attraction.image.url }}" class="card-img-top" alt="{{ attraction.name }}" style="height: 200px; object-fit: cover;">
+                {% else %}
+                <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center" style="height: 200px;">
+                    <i class="fas fa-image fa-3x text-white"></i>
+                </div>
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title">{{ attraction.name }}</h5>
+                    <p class="card-text text-muted">{{ attraction.description|truncatewords:20 }}</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-danger">¥{{ attraction.ticket_price }}</span>
+                        <a href="{% url 'core:attraction_detail' attraction.id %}" class="btn btn-outline-danger btn-sm">查看详情</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center"><p>暂无推荐景点</p></div>
+        {% endfor %}
+    </div>
+    
+    <!-- 旅游套餐 -->
+    <!-- 精选旅游线路 -->
+<h2 class="text-center mb-4 mt-5"><i class="fas fa-route"></i> 精选旅游线路</h2>
+<div class="row">
+    {% for package in tour_packages %}
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">{{ package.name }}</h5>
+                <p class="card-text">{{ package.description|truncatewords:15 }}</p>
+                <p class="card-text">
+                    <small class="text-muted"><i class="fas fa-calendar"></i> {{ package.duration_days }}天</small>
+                </p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="text-danger h5">¥{{ package.price }}</span>
+                    <a href="{% url 'booking:create_order' package.id %}" class="btn btn-danger btn-sm">立即预订</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center">
+        <p>暂无旅游套餐，请管理员在后台添加。</p>
+    </div>
+    {% endfor %}
+</div>
+</div>
+{% endblock %}

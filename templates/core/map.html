@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}洛阳旅游互动地图{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* 地图容器样式 */
+    #map {
+        height: 600px;
+        width: 100%;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    .map-sidebar {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        max-height: 600px;
+        overflow-y: auto;
+    }
+    .attraction-item {
+        padding: 12px;
+        border-bottom: 1px solid #eee;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+    .attraction-item:hover {
+        background-color: #f8f9fa;
+    }
+    .attraction-item h6 {
+        margin-bottom: 5px;
+        color: #8B1E1E;
+    }
+    /* POI 图标样式（如果使用自定义图标） */
+    .poi-marker-restaurant .leaflet-marker-icon {
+        background-image: url("{% static 'images/restaurant.png' %}");
+    }
+    .poi-marker-parking .leaflet-marker-icon {
+        background-image: url("{% static 'images/parking.png' %}");
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="text-center mb-4"><i class="fas fa-map-marked-alt text-danger"></i> 洛阳旅游互动地图</h2>
+            <p class="text-center text-muted">点击景点标记，查看周边餐厅、停车场等信息</p>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-4">
+            <div class="map-sidebar">
+                <h5><i class="fas fa-list"></i> 景点列表</h5>
+                <div id="attractions-list">
+                    {% for attraction in attractions %}
+                    <div class="attraction-item" 
+                         data-id="{{ attraction.id }}"
+                         data-lat="{{ attraction.latitude|stringformat:'f' }}" 
+                         data-lng="{{ attraction.longitude|stringformat:'f' }}"
+                         data-name="{{ attraction.name }}"
+                         data-address="{{ attraction.address }}"
+                         data-price="{{ attraction.ticket_price }}"
+                         data-desc="{{ attraction.description|escapejs }}"
+                         data-url="{% url 'core:attraction_detail' attraction.id %}"
+                         data-pois='{{ attraction.nearby_pois|safe }}'>
+                        <h6>{{ attraction.name }}</h6>
+                        <p class="small text-muted mb-0">{{ attraction.address }}</p>
+                    </div>
+                    {% empty %}
+                    <p>暂无景点坐标数据，请在后台添加经纬度。</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div id="map"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var luoyangCenter = [34.619, 112.454];
+    var map = L.map('map').setView(luoyangCenter, 12);
+L.tileLayer('https://webrd02.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', {
+    attribution: '&copy; <a href="https://www.amap.com/">高德地图</a>',
+    maxZoom: 18
+}).addTo(map);
+    var markers = [];
+    var currentPoiMarkers = [];
+    var attractionItems = document.querySelectorAll('.attraction-item');
+    function clearPoiMarkers() {
+        currentPoiMarkers.forEach(marker => map.removeLayer(marker));
+        currentPoiMarkers = [];
+    }
+    attractionItems.forEach(function(item, idx) {
+        var id = item.dataset.id;
+        var lat = parseFloat(item.dataset.lat);
+        var lng = parseFloat(item.dataset.lng);
+        var name = item.dataset.name;
+        var address = item.dataset.address;
+        var price = item.dataset.price;
+        var desc = item.dataset.desc;
+        var detailUrl = item.dataset.url;
+        var nearbyPois = JSON.parse(item.dataset.pois || '[]');
+        if (isNaN(lat) || isNaN(lng)) return;
+        var marker = L.marker([lat, lng]).addTo(map);
+        var popupContent = `
+            <div style="min-width: 220px;">
+                <h6 style="color: #8B1E1E;">${escapeHtml(name)}</h6>
+                <p class="small mb-1"><i class="fas fa-map-marker-alt"></i> ${escapeHtml(address)}</p>
+                <p class="small mb-1"><i class="fas fa-tag"></i> 门票: ¥${price}</p>
+                <p class="small">${escapeHtml(desc.substring(0, 80))}${desc.length > 80 ? '...' : ''}</p>
+                <div class="d-flex justify-content-between mt-2">
+                    <a href="${detailUrl}" class="btn btn-outline-danger btn-sm">查看详情</a>
+                    <a href="/booking/ticket/${id}/" class="btn btn-danger btn-sm">立即预订</a>
+                </div>
+            </div>
+        `;
+        marker.bindPopup(popupContent);
+        marker.on('click', function() {
+            clearPoiMarkers();
+            if (nearbyPois && nearbyPois.length) {
+                nearbyPois.forEach(function(poi) {
+                    var poiIcon = L.icon({ iconUrl: poi.type === 'restaurant' ? '/static/images/restaurant.png' : '/static/images/parking.png', iconSize: [25, 41] });
+                    var poiMarker = L.marker([poi.lat, poi.lng], { icon: poiIcon }).addTo(map);
+                    poiMarker.bindPopup(`<b>${poi.name}</b><br>${poi.address}<br>类型: ${poi.type === 'restaurant' ? '餐饮' : '停车场'}`);
+                    currentPoiMarkers.push(poiMarker);
+                });
+            }
+        });
+        markers.push({ marker: marker, lat: lat, lng: lng, id: id, pois: nearbyPois });
+        item.addEventListener('click', function() {
+            map.setView([lat, lng], 15);
+            marker.openPopup();
+            clearPoiMarkers();
+            if (nearbyPois && nearbyPois.length) {
+                nearbyPois.forEach(function(poi) {
+                    var poiIcon = L.icon({ iconUrl: poi.type === 'restaurant' ? '/static/images/restaurant.png' : '/static/images/parking.png', iconSize: [25, 41] });
+                    var poiMarker = L.marker([poi.lat, poi.lng], { icon: poiIcon }).addTo(map);
+                    poiMarker.bindPopup(`<b>${poi.name}</b><br>${poi.address}<br>类型: ${poi.type === 'restaurant' ? '餐饮' : '停车场'}`);
+                    currentPoiMarkers.push(poiMarker);
+                });
+            }
+        });
+    });
+    L.control.scale({metric: true, imperial: false}).addTo(map);
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block title %}预订{{ attraction.name }}门票{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h4>预订 {{ attraction.name }} 门票</h4>
+                </div>
+                <div class="card-body">
+                    <p><strong>单价：</strong> ¥{{ attraction.ticket_price }}</p>
+                    <p><strong>开放时间：</strong> {{ attraction.opening_hours }}</p>
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label">预订数量</label>
+                            <input type="number" name="quantity" class="form-control" min="1" value="1" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">游玩日期</label>
+                            <input type="date" name="travel_date" class="form-control" min="{{ today }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">联系人姓名</label>
+                            <input type="text" name="contact_name" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">联系电话</label>
+                            <input type="tel" name="contact_phone" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">备注</label>
+                            <textarea name="remark" class="form-control" rows="3"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-danger w-100">提交订单</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ attraction.name }} - 洛阳旅游网{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <h1>{{ attraction.name }}</h1>
+            <p class="text-muted"><i class="fas fa-map-marker-alt"></i> {{ attraction.address }}</p>
+            <p><strong>门票价格：</strong> ¥{{ attraction.ticket_price }}</p>
+            <a href="{% url 'booking:create_ticket_order' attraction.id %}" class="btn btn-danger btn-lg mt-3">立即预订门票</a>
+            <p><strong>开放时间：</strong> {{ attraction.opening_hours }}</p>
+            <p><strong>咨询电话：</strong> {{ attraction.phone }}</p>
+            <p>{{ attraction.description|linebreaks }}</p>
+            <a href="{% url 'core:attraction_list' %}" class="btn btn-secondary">返回列表</a>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- 评论列表 -->
+<div class="mt-5">
+    <h4><i class="fas fa-comments"></i> 用户评价</h4>
+    {% if reviews %}
+        {% for review in reviews %}
+        <div class="card mb-2">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <strong>{{ review.user.username }}</strong>
+                    <span>
+                        {% for i in "12345"|make_list %}
+                            {% if forloop.counter <= review.rating %}
+                                <i class="fas fa-star text-warning"></i>
+                            {% else %}
+                                <i class="far fa-star text-warning"></i>
+                            {% endif %}
+                        {% endfor %}
+                    </span>
+                </div>
+                <p class="mt-2">{{ review.content }}</p>
+                <small class="text-muted">{{ review.created_at|date:"Y-m-d H:i" }}</small>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <p class="text-muted">暂无评价，成为第一个评论的人吧！</p>
+    {% endif %}
+</div>
+
+<!-- 评论表单（仅登录用户可见） -->
+<div class="mt-4">
+    <h5>发表评论</h5>
+    {% if user.is_authenticated %}
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label class="form-label">评分</label>
+                {{ form.rating }}
+            </div>
+            <div class="mb-3">
+                <label class="form-label">评论内容</label>
+                {{ form.content }}
+            </div>
+            <button type="submit" class="btn btn-danger">提交评论</button>
+        </form>
+    {% else %}
+        <p>请 <a href="{% url 'accounts:login' %}?next={{ request.path }}">登录</a> 后发表评论。</p>
+    {% endif %}
+</div>
+{% endblock %}

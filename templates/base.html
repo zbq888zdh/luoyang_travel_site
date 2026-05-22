@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>{% block title %}洛阳旅游网{% endblock %} - 神都洛阳欢迎您</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Leaflet CSS（用于地图） -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <style>
+        /* 洛阳文化风格自定义样式 */
+        :root {
+            --luoyang-red: #8B1E1E;
+            --luoyang-gold: #D4AF37;
+            --luoyang-dark: #2C2C2C;
+        }
+        
+        body {
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            padding-top: 76px;
+        }
+        
+        /* 导航栏样式 */
+        .navbar-brand {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--luoyang-red) !important;
+        }
+        
+        .navbar-brand small {
+            font-size: 0.8rem;
+            color: var(--luoyang-gold);
+        }
+        
+        /* 英雄区域（洛阳文化元素） */
+        .hero-section {
+            background: linear-gradient(135deg, #8B1E1E 0%, #D4AF37 100%);
+            color: white;
+            padding: 80px 0;
+            text-align: center;
+        }
+        
+        .hero-section h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+        
+        /* 卡片样式 */
+        .card {
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: none;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        
+        /* 响应式调整 */
+        @media (max-width: 768px) {
+            body {
+                padding-top: 60px;
+            }
+            .hero-section h1 {
+                font-size: 2rem;
+            }
+            .hero-section p {
+                font-size: 1rem;
+            }
+        }
+        
+        /* 页脚样式 */
+        .footer {
+            background-color: var(--luoyang-dark);
+            color: #ccc;
+            padding: 40px 0;
+            margin-top: 50px;
+        }
+        
+        .footer a {
+            color: var(--luoyang-gold);
+            text-decoration: none;
+        }
+        
+        /* 搜索框样式 */
+        .search-box {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        /* 洛阳特色装饰元素 */
+        .luoyang-badge {
+            background: linear-gradient(135deg, var(--luoyang-red), var(--luoyang-gold));
+            color: white;
+            padding: 5px 15px;
+            border-radius: 30px;
+            display: inline-block;
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top shadow-sm">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                神都洛阳 <small>· 千年帝都</small>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="/">首页</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/attractions/">景点</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/packages/">旅游套餐</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/map/">互动地图</a></li>
+                    {% if user.is_authenticated %}
+                        <li class="nav-item"><a class="nav-link" href="#">{{ user.username }}</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'booking:my_orders' %}">我的订单</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'accounts:logout' %}">退出</a></li>
+                    {% else %}
+                        <li class="nav-item"><a class="nav-link" href="{% url 'accounts:login' %}">登录</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'accounts:register' %}">注册</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+    
+    {% if messages %}
+    <div class="container mt-2">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- 主要内容区域 -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+    
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <h5>关于洛阳</h5>
+                    <p>洛阳，十三朝古都，丝绸之路的东方起点，华夏文明的发祥地之一。龙门石窟、白马寺、洛阳牡丹，等待您的探索。</p>
+                </div>
+                <div class="col-md-4">
+                    <h5>快速链接</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="/attractions/">景点导览</a></li>
+                        <li><a href="/packages/">旅游线路</a></li>
+                        <li><a href="/map/">地图导航</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h5>联系我们</h5>
+                    <p><i class="fas fa-phone"></i> 400-123-4567</p>
+                    <p><i class="fas fa-envelope"></i> info@luoyangtravel.com</p>
+                </div>
+            </div>
+            <div class="text-center mt-4">
+                <p>&copy; 2026 洛阳旅游网 | 发现神都之美</p>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block title %}预订{{ package.name }}{% endblock %}
+
+{% if order.product_type == 'ticket' %}
+    产品：{{ order.attraction.name }} 门票
+{% else %}
+    产品：{{ order.tour_package.name }} 套餐
+{% endif %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h4>预订 {{ package.name }}</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label>出行人数</label>
+                            <input type="number" name="quantity" class="form-control" value="1" min="1" required>
+                        </div>
+                        <div class="mb-3">
+                            <label>出行日期</label>
+                            <input type="date" name="travel_date" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label>联系人姓名</label>
+                            <input type="text" name="contact_name" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label>联系电话</label>
+                            <input type="tel" name="contact_phone" class="form-control" required>
+                        </div>
+                        <button type="submit" class="btn btn-danger w-100">提交订单</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

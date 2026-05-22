@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block title %}用户注册{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">用户注册</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        {% for field in form %}
+                        <div class="mb-3">
+                            <label class="form-label">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.errors %}
+                            <div class="text-danger small">{{ field.errors }}</div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                        <button type="submit" class="btn btn-danger w-100">注册</button>
+                    </form>
+                    <hr>
+                    <p class="text-center mb-0">已有账号？ <a href="{% url 'accounts:login' %}">立即登录</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* 美化表单输入框 */
+    input, select, textarea {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+</style>
+{% endblock %}

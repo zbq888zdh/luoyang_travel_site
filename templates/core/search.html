@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block title %}搜索结果 - {{ keyword }}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h2>搜索“{{ keyword }}”的结果</h2>
+    <p class="text-muted">共找到 {{ results|length }} 个景点</p>
+    <hr>
+    
+    <div class="row">
+        {% for attraction in results %}
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">{{ attraction.name }}</h5>
+                    <p class="card-text text-muted"><i class="fas fa-map-marker-alt"></i> {{ attraction.address }}</p>
+                    <p class="card-text">{{ attraction.description|truncatewords:30 }}</p>
+                    <a href="{% url 'core:attraction_detail' attraction.id %}" class="btn btn-outline-danger btn-sm">查看详情</a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center">
+            <p>未找到相关景点，请尝试其他关键词。</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

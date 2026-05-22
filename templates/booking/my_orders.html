@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}我的订单{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h2 class="mb-4">我的订单</h2>
+    {% if orders %}
+        <div class="table-responsive">
+            <table class="table table-bordered">
+                <thead class="table-danger">
+                    <tr>
+                        <th>订单号</th>
+                        <th>产品名称</th>
+                        <th>总金额</th>
+                        <th>状态</th>
+                        <th>出行日期</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr>
+                        <td>{{ order.order_no }}</td>
+                        <td>
+                            {% if order.product_type == 'ticket' %}
+                                {{ order.attraction.name }} 门票
+                            {% else %}
+                                {{ order.tour_package.name }} 套餐
+                            {% endif %}
+                        </td>
+                        <td>¥{{ order.total_amount }}</td>
+                        <td>
+                            {% if order.status == 'pending' %}
+                                <span class="badge bg-warning">待支付</span>
+                            {% elif order.status == 'paid' %}
+                                <span class="badge bg-success">已支付</span>
+                            {% elif order.status == 'cancelled' %}
+                                <span class="badge bg-secondary">已取消</span>
+                            {% else %}
+                                <span class="badge bg-info">已完成</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ order.travel_date }}</td>
+                        <td>
+                            <a href="{% url 'booking:order_detail' order.order_no %}" class="btn btn-sm btn-outline-danger">查看详情</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p>暂无订单，去 <a href="/packages/">预订旅游套餐</a> 或 <a href="/attractions/">购买门票</a>。</p>
+    {% endif %}
+</div>
+{% endblock %}
